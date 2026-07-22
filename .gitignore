@@ -1,0 +1,17 @@
+# Node / frontend
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Rust / Tauri
+src-tauri/target/
+src-tauri/gen/
+*.AppImage
+*.zsync
+
+# Editor / OS
+.DS_Store
+.directory
+*.pdf
+Thumbs.db

@@ -1,0 +1,31 @@
+[package]
+name = "quiq"
+version = "0.1.0"
+description = "quiq — a beautiful, practical formatter for removable media"
+authors = ["shanti"]
+edition = "2021"
+rust-version = "1.77"
+license = "GPL-3.0-or-later"
+
+# The binary that runs the Tauri app.
+[[bin]]
+name = "quiq"
+path = "src/main.rs"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# D-Bus client to talk to the system udisks2 service, on the tokio runtime.
+zbus = { version = "4", default-features = false, features = ["tokio"] }
+tauri-plugin-opener = "2.5.4"
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>cc.mojo.quiq</id>
+  <name>quiq</name>
+  <summary>Format removable media</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <developer id="cc.mojo">
+    <name>shanti</name>
+  </developer>
+  <description>
+    <p>
+      quiq formats removable USB drives and memory cards to a wide range of
+      filesystems (ext4, xfs, btrfs, f2fs, FAT, exFAT, NTFS) via the system
+      udisks2 service.
+    </p>
+  </description>
+  <launchable type="desktop-id">quiq.desktop</launchable>
+  <url type="homepage">https://github.com/trueshanti/quiq</url>
+  <categories>
+    <category>Utility</category>
+  </categories>
+  <content_rating type="oars-1.1" />
+</component>

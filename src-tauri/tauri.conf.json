@@ -1,0 +1,52 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "quiq",
+  "version": "0.1.0",
+  "identifier": "cc.mojo.quiq",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "quiq — Drive Formatter",
+        "width": 1040,
+        "height": 700,
+        "minWidth": 860,
+        "minHeight": 580,
+        "resizable": true,
+        "fullscreen": false
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["appimage", "rpm"],
+    "category": "Utility",
+    "shortDescription": "Format removable media",
+    "longDescription": "quiq formats removable USB drives and memory cards to a wide range of filesystems (ext4, xfs, btrfs, f2fs, FAT, exFAT, NTFS) via the system udisks2 service.",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.png"
+    ],
+    "linux": {
+      "rpm": {
+        "depends": ["udisks2"]
+      },
+      "appimage": {
+        "files": {
+          "/usr/share/metainfo/cc.mojo.quiq.appdata.xml": "metainfo/cc.mojo.quiq.appdata.xml"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,95 @@
+name: 'publish'
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish-tauri:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            build-essential \
+            curl \
+            wget \
+            file \
+            libxdo-dev \
+            libssl-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            xdg-utils \
+            zsync
+
+      - name: setup node
+        uses: actions/setup-node@v6
+        with:
+          node-version: lts/*
+          cache: 'npm'
+
+      - name: install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: install frontend dependencies
+        run: npm install
+
+      - name: pre-fetch AppImage runtime
+        # appimagetool's bundled downloader can hang fetching this itself;
+        # pre-fetching and pointing linuxdeploy-plugin-appimage at it via
+        # LDAI_RUNTIME_FILE avoids that entirely.
+        run: |
+          curl -L -o /tmp/runtime-x86_64 \
+            https://github.com/AppImage/type2-runtime/releases/download/continuous/runtime-x86_64
+
+      - name: build and release
+        id: tauri-release
+        uses: tauri-apps/tauri-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LDAI_RUNTIME_FILE: /tmp/runtime-x86_64
+          LDAI_UPDATE_INFORMATION: 'gh-releases-zsync|trueshanti|quiq|latest|quiq_*.AppImage'
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: 'quiq ${{ github.ref_name }}'
+          releaseBody: 'See the assets to download this version and install.'
+          releaseDraft: true
+          prerelease: false
+
+      - name: generate zsync sidecar and upload
+        run: |
+          set -euo pipefail
+
+          BUNDLE_DIR="$GITHUB_WORKSPACE/src-tauri/target/release/bundle/appimage"
+          APPIMAGE="$(find "$BUNDLE_DIR" -maxdepth 1 -name '*.AppImage' | head -n1)"
+
+          if [ -z "$APPIMAGE" ]; then
+            echo "No .AppImage found in $BUNDLE_DIR" >&2
+            exit 1
+          fi
+
+          # zsyncmake always writes "<basename>.zsync" into the CURRENT
+          # directory (not next to the input file), so cd into the bundle
+          # dir first and use a relative filename.
+          cd "$BUNDLE_DIR"
+          APPIMAGE_NAME="$(basename "$APPIMAGE")"
+          zsyncmake -u "$APPIMAGE_NAME" "$APPIMAGE_NAME"
+
+          gh release upload "${{ github.ref_name }}" "$APPIMAGE_NAME.zsync" --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

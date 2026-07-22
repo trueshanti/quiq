@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <rect width="128" height="128" rx="28" fill="#0d9488"/>
+  <!-- Circular "reformat" arrow around a drive platter -->
+  <circle cx="64" cy="64" r="26" fill="none" stroke="#f0fdfa" stroke-width="10"/>
+  <circle cx="64" cy="64" r="10" fill="#f0fdfa"/>
+  <path d="M64 20 A44 44 0 0 1 104 46" fill="none" stroke="#f0fdfa" stroke-width="8" stroke-linecap="round"/>
+  <path d="M96 34 L104 46 L112 34 Z" fill="#f0fdfa"/>
+</svg>
