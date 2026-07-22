@@ -44,7 +44,10 @@
       },
       "appimage": {
         "files": {
-          "/usr/share/metainfo/cc.mojo.quiq.appdata.xml": "metainfo/cc.mojo.quiq.appdata.xml"
+          "/usr/share/metainfo/cc.mojo.quiq.appdata.xml": "metainfo/cc.mojo.quiq.appdata.xml",
+          "/usr/libexec/libwebkit2gtk-4_1-0/WebKitNetworkProcess": "/usr/libexec/libwebkit2gtk-4_1-0/WebKitNetworkProcess",
+          "/usr/libexec/libwebkit2gtk-4_1-0/WebKitWebProcess": "/usr/libexec/libwebkit2gtk-4_1-0/WebKitWebProcess",
+          "/usr/libexec/libwebkit2gtk-4_1-0/WebKitGPUProcess": "/usr/libexec/libwebkit2gtk-4_1-0/WebKitGPUProcess"
         }
       }
     }

@@ -15,3 +15,6 @@ src-tauri/gen/
 .directory
 *.pdf
 Thumbs.db
+
+.vscode
+.github

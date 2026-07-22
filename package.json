@@ -10,7 +10,9 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
-    "gen:icons": "node scripts/gen-icons.mjs"
+    "gen:icons": "node scripts/gen-icons.mjs",
+    "tauri:build": "LDAI_RUNTIME_FILE=\"$(pwd)/src-tauri/runtime-x86_64\" npm run tauri build"
+
   },
   "dependencies": {
     "@tauri-apps/api": "^2",
