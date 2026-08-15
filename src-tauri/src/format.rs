@@ -33,17 +33,14 @@ fn fsopt(id: &str, label: &str, description: &str, native_ownership: bool) -> Fi
 
 /// Filesystems udisks2 can create, given the matching `mkfs.*` tools are
 /// installed on the system.
-pub(crate) const SUPPORTED: &[&str] = &[
-    "ext4", "ext3", "ext2", "btrfs", "xfs", "f2fs", "vfat", "exfat", "ntfs",
-];
+pub(crate) const SUPPORTED: &[&str] = &["ext4", "xfs", "vfat", "exfat"];
 
 /// Native Unix filesystems where we take ownership so the user can write freely.
-pub(crate) const NATIVE_OWNERSHIP: &[&str] = &["ext2", "ext3", "ext4", "xfs", "btrfs", "f2fs"];
+pub(crate) const NATIVE_OWNERSHIP: &[&str] = &["ext4", "xfs"];
 
 #[tauri::command]
 pub fn list_supported_filesystems() -> Vec<FilesystemOption> {
     vec![
-        fsopt("ntfs", "NTFS", "Windows native. Read/write on Windows and Linux.", false),
         fsopt(
             "exfat",
             "exFAT",
@@ -58,10 +55,6 @@ pub fn list_supported_filesystems() -> Vec<FilesystemOption> {
         ),
         fsopt("xfs", "XFS", "High-performance Linux filesystem for large files.", true),
         fsopt("ext4", "ext4", "Modern Linux default. Best for Linux-only drives.", true),
-        fsopt("ext3", "ext3", "Older Linux journaling filesystem.", true),
-        fsopt("ext2", "ext2", "Legacy Linux filesystem without a journal.", true),
-        fsopt("btrfs", "Btrfs", "Advanced Linux filesystem with snapshots & checksums.", true),
-        fsopt("f2fs", "F2FS", "Flash-friendly — great for SD cards and USB sticks.", true),
     ]
 }
 

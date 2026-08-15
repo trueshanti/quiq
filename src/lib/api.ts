@@ -100,15 +100,10 @@ const MOCK_DRIVES: DriveInfo[] = [
 ];
 
 const MOCK_FS: FilesystemOption[] = [
-  { id: "ntfs", label: "NTFS", description: "Windows native. Read/write on Windows and Linux.", nativeOwnership: false },
   { id: "exfat", label: "exFAT", description: "Universal, no 4 GB file limit. Ideal for large USB sticks.", nativeOwnership: false },
   { id: "vfat", label: "FAT32", description: "Reads everywhere: Windows, macOS, Linux. Max 4 GB per file.", nativeOwnership: false },
   { id: "xfs", label: "XFS", description: "High-performance Linux filesystem for large files.", nativeOwnership: true },
   { id: "ext4", label: "ext4", description: "Modern Linux default. Best for Linux-only drives.", nativeOwnership: true },
-  { id: "ext3", label: "ext3", description: "Older Linux journaling filesystem.", nativeOwnership: true },
-  { id: "ext2", label: "ext2", description: "Legacy Linux filesystem without a journal.", nativeOwnership: true },
-  { id: "btrfs", label: "Btrfs", description: "Advanced Linux filesystem with snapshots & checksums.", nativeOwnership: true },
-  { id: "f2fs", label: "F2FS", description: "Flash-friendly — great for SD cards and USB sticks.", nativeOwnership: true },
 ];
 
 export async function listRemovableDrives(): Promise<DriveInfo[]> {
