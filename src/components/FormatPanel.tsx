@@ -10,7 +10,7 @@ import {
   Tag,
   Zap,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { DriveInfo, FilesystemOption } from "@/lib/types";
 import { cn, formatBytes, isLuksEncrypted } from "@/lib/utils";
 
@@ -22,6 +22,22 @@ function fsDisplayLabel(fs: string, cleartextFs: string): string {
       : "LUKS (encrypted, locked)";
   }
   return fs ? fs.toUpperCase() : "None / partitioned";
+}
+
+/** Short compatibility hint shown in the filesystem picker cards. */
+function fsCompatibilityHint(fs: FilesystemOption): string {
+  switch (fs.id) {
+    case "exfat":
+      return "Cross-platform, large files";
+    case "vfat":
+      return "Cross-platform, 4 GB file cap";
+    case "xfs":
+      return "Linux native, high throughput";
+    case "ext4":
+      return "Linux native, best default";
+    default:
+      return fs.nativeOwnership ? "Linux native" : "Cross-platform";
+  }
 }
 
 interface FormatPanelProps {
@@ -52,7 +68,7 @@ function DetailRow({
   critical?: boolean;
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 py-1.5">
+    <div className="flex items-center justify-between gap-4 py-1">
       <span className="text-xs text-slate-500 dark:text-slate-400">{label}</span>
       <span
         className={cn(
@@ -81,7 +97,7 @@ function CopyableDetailRow({
   onCopy: () => void;
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 py-1.5">
+    <div className="flex items-center justify-between gap-4 py-1">
       <span className="text-xs text-slate-500 dark:text-slate-400">{label}</span>
       <div className="flex min-w-0 items-center gap-1">
         {value && (
@@ -129,12 +145,22 @@ export function FormatPanel({
 }: FormatPanelProps) {
   const [flipped, setFlipped] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const frontFaceRef = useRef<HTMLDivElement>(null);
+  const backFaceRef = useRef<HTMLDivElement>(null);
+  const [cardHeight, setCardHeight] = useState<number>();
 
   // Always show the front (primary info) when the selected drive changes.
   useEffect(() => {
     setFlipped(false);
     setCopiedField(null);
   }, [drive?.objectPath]);
+
+  // Size the flip card to the taller face so flipping never changes its height.
+  useLayoutEffect(() => {
+    const frontH = frontFaceRef.current?.scrollHeight ?? 0;
+    const backH = backFaceRef.current?.scrollHeight ?? 0;
+    setCardHeight(Math.max(frontH, backH));
+  }, [drive]);
 
   const handleCopy = async (field: string, value: string) => {
     if (!value) return;
@@ -194,16 +220,17 @@ export function FormatPanel({
             }
           }}
           aria-label="Flip the card for more drive details"
-          className="group mt-3 block w-full cursor-pointer text-left [perspective:1200px]"
+          className="group mt-3 block w-full cursor-pointer text-left"
         >
-          <div
-            className={cn(
-              "relative grid transition-transform duration-500 [transform-style:preserve-3d]",
-              flipped && "[transform:rotateY(180deg)]"
-            )}
-          >
+          <div className="relative w-full" style={{ height: cardHeight }}>
             {/* Front — primary details */}
-            <div className="col-start-1 row-start-1 flex h-full flex-col rounded-lg bg-slate-50 px-3 [backface-visibility:hidden] dark:bg-slate-800/50">
+            <div
+              ref={frontFaceRef}
+              className={cn(
+                "absolute inset-x-0 top-0 flex w-full flex-col rounded-lg bg-slate-50 px-3 transition-opacity duration-300 dark:bg-slate-800/50",
+                flipped ? "opacity-0 pointer-events-none" : "opacity-100"
+              )}
+            >
               <DetailRow label="Capacity" value={formatBytes(drive.size)} />
               <DetailRow
                 label="Current filesystem"
@@ -225,13 +252,19 @@ export function FormatPanel({
                   : drive.mountPoints
                 ).join(", ")}
               />
-              <div className="mt-auto flex items-center justify-end gap-1 pb-1.5 pt-0.5 text-[10px] font-medium text-slate-400 transition group-hover:text-emerald-500">
+              <div className="flex items-center justify-end gap-1 pb-1 pt-0.5 text-[10px] font-medium text-slate-400 transition group-hover:text-emerald-500">
                 <ArrowLeftRight className="h-3 w-3" /> More
               </div>
             </div>
 
             {/* Back — hardware identity & lifetime */}
-            <div className="col-start-1 row-start-1 flex h-full flex-col rounded-lg bg-slate-50 px-3 [backface-visibility:hidden] [transform:rotateY(180deg)] dark:bg-slate-800/50">
+            <div
+              ref={backFaceRef}
+              className={cn(
+                "absolute inset-x-0 top-0 flex w-full flex-col rounded-lg bg-slate-50 px-3 transition-opacity duration-300 dark:bg-slate-800/50",
+                flipped ? "opacity-100" : "opacity-0 pointer-events-none"
+              )}
+            >
               <DetailRow label="Manufacturer" value={drive.vendor} />
               <DetailRow label="Model" value={drive.model} />
               <CopyableDetailRow
@@ -274,7 +307,7 @@ export function FormatPanel({
                   value={`${drive.temperatureC.toFixed(0)} °C`}
                 />
               ) : null}
-              <div className="mt-auto flex items-center justify-end gap-1 pb-1.5 pt-0.5 text-[10px] font-medium text-slate-400 transition group-hover:text-emerald-500">
+              <div className="flex items-center justify-end gap-1 pb-1 pt-0.5 text-[10px] font-medium text-slate-400 transition group-hover:text-emerald-500">
                 <ArrowLeftRight className="h-3 w-3" /> Back
               </div>
             </div>
@@ -288,19 +321,48 @@ export function FormatPanel({
           <label className="mb-2 block text-xs font-medium text-slate-600 dark:text-slate-300">
             Format to
           </label>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2.5">
             {filesystems.map((fs) => (
               <button
                 key={fs.id}
                 onClick={() => onFsType(fs.id)}
                 className={cn(
-                  "rounded-lg border px-2 py-2 text-xs font-medium transition",
+                  "group rounded-xl border px-3 py-2.5 text-left transition",
                   fsType === fs.id
-                    ? "border-emerald-500 bg-emerald-50 text-emerald-700 ring-1 ring-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-300"
-                    : "border-ink bg-white text-slate-600 hover:border-slate-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-slate-600"
+                    ? "border-emerald-500 bg-emerald-50 ring-1 ring-emerald-500/40 dark:bg-emerald-500/10"
+                    : "border-ink bg-white hover:border-slate-300 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-slate-600"
                 )}
               >
-                {fs.label}
+                <div
+                  className={cn(
+                    "text-sm font-semibold",
+                    fsType === fs.id
+                      ? "text-emerald-700 dark:text-emerald-300"
+                      : "text-slate-800 dark:text-slate-100"
+                  )}
+                >
+                  {fs.label}
+                </div>
+                <div
+                  className={cn(
+                    "mt-0.5 text-[11px] uppercase tracking-wide",
+                    fsType === fs.id
+                      ? "text-emerald-600/80 dark:text-emerald-300/80"
+                      : "text-slate-500 dark:text-slate-400"
+                  )}
+                >
+                  {fs.id}
+                </div>
+                <div
+                  className={cn(
+                    "mt-1 text-[11px] leading-snug",
+                    fsType === fs.id
+                      ? "text-emerald-700/90 dark:text-emerald-200/90"
+                      : "text-slate-500 dark:text-slate-400"
+                  )}
+                >
+                  {fsCompatibilityHint(fs)}
+                </div>
               </button>
             ))}
           </div>
