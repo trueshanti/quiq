@@ -30,7 +30,8 @@ jobs:
             librsvg2-dev \
             patchelf \
             xdg-utils \
-            zsync
+            zsync \
+            squashfs-tools
 
       - name: shim libwebkit2gtk private binaries at the openSUSE-style path
         # tauri.conf.json's appimage.files expects /usr/libexec/libwebkit2gtk-4_1-0/*,
@@ -81,6 +82,40 @@ jobs:
           LDAI_UPDATE_INFORMATION: 'gh-releases-zsync|trueshanti|quiq|latest|quiq-*.AppImage'
         # omitting tagName/releaseName/releaseId makes tauri-action build only,
         # so we control the AppImageHub-compliant asset names/upload ourselves below
+
+      - name: fix AppImage permissions
+        # the runner's umask strips group/other read+execute from files copied
+        # into the AppDir (e.g. AppRun.wrapped ends up mode 750), so the
+        # AppImage fails to launch for any other user - notably the
+        # AppImageHub CI test bot. Extract, fix perms, repack.
+        run: |
+          set -euo pipefail
+
+          BUNDLE_DIR="$GITHUB_WORKSPACE/src-tauri/target/release/bundle/appimage"
+          APPIMAGE="$(find "$BUNDLE_DIR" -maxdepth 1 -name '*.AppImage' | head -n1)"
+
+          if [ -z "$APPIMAGE" ]; then
+            echo "No .AppImage found in $BUNDLE_DIR" >&2
+            exit 1
+          fi
+
+          WORKDIR="$(mktemp -d)"
+          cp "$APPIMAGE" "$WORKDIR/orig.AppImage"
+          chmod +x "$WORKDIR/orig.AppImage"
+          (cd "$WORKDIR" && ./orig.AppImage --appimage-extract >/dev/null)
+
+          chmod -R u+rwX,go+rX "$WORKDIR/squashfs-root"
+
+          # keep the original runtime section (bytes before the squashfs
+          # offset) rather than the plain pre-fetched runtime, since it has
+          # the update info embedded by LDAI_UPDATE_INFORMATION
+          OFFSET="$("$WORKDIR/orig.AppImage" --appimage-offset)"
+          dd if="$WORKDIR/orig.AppImage" of="$WORKDIR/runtime" bs=1 count="$OFFSET" status=none
+
+          mksquashfs "$WORKDIR/squashfs-root" "$WORKDIR/new.squashfs" -root-owned -noappend
+          cat "$WORKDIR/runtime" "$WORKDIR/new.squashfs" > "$APPIMAGE"
+          chmod +x "$APPIMAGE"
+          rm -rf "$WORKDIR"
 
       - name: rename appimage to AppImageHub convention
         run: node scripts/rename-appimage.mjs
