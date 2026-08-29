@@ -32,6 +32,21 @@ jobs:
             xdg-utils \
             zsync
 
+      - name: shim libwebkit2gtk private binaries at the openSUSE-style path
+        # tauri.conf.json's appimage.files expects /usr/libexec/libwebkit2gtk-4_1-0/*,
+        # but Ubuntu's multiarch package layout puts them elsewhere
+        run: |
+          set -euo pipefail
+          sudo mkdir -p /usr/libexec/libwebkit2gtk-4_1-0
+          for bin in WebKitNetworkProcess WebKitWebProcess WebKitGPUProcess; do
+            src="$(find /usr/lib -type f -name "$bin" 2>/dev/null | head -n1)"
+            if [ -z "$src" ]; then
+              echo "could not locate $bin under /usr/lib" >&2
+              exit 1
+            fi
+            sudo ln -sf "$src" "/usr/libexec/libwebkit2gtk-4_1-0/$bin"
+          done
+
       - name: setup node
         uses: actions/setup-node@v6
         with:
