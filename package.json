@@ -1,7 +1,7 @@
 {
   "name": "quiq",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "description": "quiq — a beautiful, practical formatter for removable media on Linux",
   "license": "GPL-3.0-or-later",

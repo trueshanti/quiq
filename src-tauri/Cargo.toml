@@ -1,6 +1,6 @@
 [package]
 name = "quiq"
-version = "0.1.0"
+version = "1.0.0"
 description = "quiq — a beautiful, practical formatter for removable media"
 authors = ["shanti"]
 edition = "2021"
