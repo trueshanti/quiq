@@ -17,6 +17,11 @@
   </description>
   <launchable type="desktop-id">quiq.desktop</launchable>
   <url type="homepage">https://github.com/trueshanti/quiq</url>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/trueshanti/quiq/master/screenshots/quiq-main-window.png</image>
+    </screenshot>
+  </screenshots>
   <categories>
     <category>Utility</category>
   </categories>

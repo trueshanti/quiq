@@ -104,8 +104,3 @@ jobs:
             $RPM
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-
-          gh release upload "${{ github.ref_name }}" "$APPIMAGE_NAME.zsync" --clobber
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
