@@ -2,10 +2,12 @@
 
 quiq is a Linux desktop app for formatting removable media, vibe-coded with love for my beloved wife, queen and mentor. It lists removable drives, lets you choose a filesystem and volume label, and formats the selected device through the system `udisks2` service.
 
+![quiq main window](screenshots/quiq-main-window.png)
+
 ## Features
 
 - Shows removable drives only; system disks are filtered out.
-- Supports common filesystems such as ext4, xfs, btrfs, f2fs, FAT32, exFAT, and NTFS.
+- Supports common filesystems: ext4, xfs, FAT32, and exFAT.
 - Lets you choose a volume label.
 - Supports quick format and full erase.
 - LUKS2 encryption
