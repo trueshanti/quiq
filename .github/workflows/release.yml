@@ -57,21 +57,20 @@ jobs:
           curl -L -o /tmp/runtime-x86_64 \
             https://github.com/AppImage/type2-runtime/releases/download/continuous/runtime-x86_64
 
-      - name: build and release
-        id: tauri-release
+      - name: build
+        id: tauri-build
         uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           LDAI_RUNTIME_FILE: /tmp/runtime-x86_64
-          LDAI_UPDATE_INFORMATION: 'gh-releases-zsync|trueshanti|quiq|latest|quiq_*.AppImage'
-        with:
-          tagName: ${{ github.ref_name }}
-          releaseName: 'quiq ${{ github.ref_name }}'
-          releaseBody: 'See the assets to download this version and install.'
-          releaseDraft: true
-          prerelease: false
+          LDAI_UPDATE_INFORMATION: 'gh-releases-zsync|trueshanti|quiq|latest|quiq-*.AppImage'
+        # omitting tagName/releaseName/releaseId makes tauri-action build only,
+        # so we control the AppImageHub-compliant asset names/upload ourselves below
 
-      - name: generate zsync sidecar and upload
+      - name: rename appimage to AppImageHub convention
+        run: node scripts/rename-appimage.mjs
+
+      - name: generate zsync sidecar
         run: |
           set -euo pipefail
 
@@ -89,6 +88,23 @@ jobs:
           cd "$BUNDLE_DIR"
           APPIMAGE_NAME="$(basename "$APPIMAGE")"
           zsyncmake -u "$APPIMAGE_NAME" "$APPIMAGE_NAME"
+
+      - name: create release and upload assets
+        run: |
+          set -euo pipefail
+
+          RPM="$(find "$GITHUB_WORKSPACE/src-tauri/target/release/bundle/rpm" -maxdepth 1 -name '*.rpm')"
+
+          gh release create "${{ github.ref_name }}" \
+            --title "quiq ${{ github.ref_name }}" \
+            --notes "See the assets to download this version and install." \
+            --draft \
+            "$GITHUB_WORKSPACE"/src-tauri/target/release/bundle/appimage/*.AppImage \
+            "$GITHUB_WORKSPACE"/src-tauri/target/release/bundle/appimage/*.AppImage.zsync \
+            $RPM
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
           gh release upload "${{ github.ref_name }}" "$APPIMAGE_NAME.zsync" --clobber
         env:
