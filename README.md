@@ -1,6 +1,6 @@
 # quiq
 
-quiq is a Linux desktop app for formatting removable media, vibe-coded with love for my beloved wife, queen and mentor. It lists removable drives, lets you choose a filesystem and volume label, and formats the selected device through the system `udisks2` service.
+quiq is a Linux desktop app for formatting removable media, vibe-coded with love for my beloved wife, queen and mentor. It lists removable drives, lets you choose a filesystem and volume label, and formats the selected device through the system `udisks2` service. It further sets permissions of that new volume to the current $USER.
 
 ![quiq main window](screenshots/quiq-main-window.png)
 
